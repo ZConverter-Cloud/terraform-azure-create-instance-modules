@@ -297,25 +297,15 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 	```
 ### Attribute Table
 |Attribute|Data Type|Required|Default Value|Description|
-
 |---------|---------|--------|-------------|-----------|
-
 | terraform_data.provider.subscription_id | string | yes | none |Subscription ID found through the [preparation step](#get-api-key).|
-
 | terraform_data.provider.client_id | string | yes | none |Client ID found through the [preparation step](#get-api-key).|
-
 | terraform_data.provider.client_secret | string | yes | none |Client Secret found through the [preparation step](#get-api-key).|
-
 | terraform_data.provider.tenant_id | string | yes | none |Tenant ID found through the [preparation step](#get-api-key).|
-
 | terraform_data.provider.region | string | yes | none |Region Name found through the [preparation step](#get-api-key).|
-
 | terraform_data.vm_info.vm_name | string | yes | none |Specifies the name of the Virtual Machine.|
-
 | terraform_data.vm_info.vm_size | string | yes | none | Specifies the [size of the Virtual Machine](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-general). See also [Azure VM Naming Conventions](https://learn.microsoft.com/en-us/azure/virtual-machines/vm-naming-conventions). |
-
 | terraform_data.vm_info.resource_group.is_create | string | yes | none |Specifies the name of the Virtual Machine.|
-
 | terraform_data.vm_info.resource_group.resource_group_name | string | yes | none |Specifies the name of the Virtual Machine.|
 
 * **Go to the file path of Terraform.exe and Initialize the working directory containing the terraform configuration file.**
