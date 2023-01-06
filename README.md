@@ -1,13 +1,10 @@
-
-
-
-
 # terraform-azure-create-instnace-modules
 > Before You Begin
 > 
 > Prepare
 > 
 > Start Terraform
+
 ## Before You Begin
 To successfully perform this tutorial, you must have the following:
 
@@ -76,8 +73,6 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 	   - [Find your Azure AD tenant.](https://learn.microsoft.com/en-us/azure/azure-portal/get-subscription-tenant-id#find-your-azure-ad-tenant)
    * **client_id, client_secret**
 	   -   [Please refer to the guide.](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret#creating-a-service-principal-using-the-azure-cli)
-	* **region**
-	   -   [region list.](https://azure.microsoft.com/en-us/explore/global-infrastructure/geographies/#geographies) - Region name in Regions - ex : East US
 
 ##  Start Terraform
 
@@ -126,24 +121,24 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 					virtual_network = object({
 						is_create = bool
 						azure_virtual_network_name = string
-						AVN_address_space = optional(list(string),null)
+						AVN_address_space = list(string)
 					})
 					subnet = object({
 						is_create = bool
 						subnet_name = string
-						subnet_address_prefixes = optional(list(string),null)
+						subnet_address_prefixes = list(string)
 					})
 					nic_name = string
-					security_group_rules = optional(list(object({
-						name = optional(string,null)
-					        direction = optional(string,null)
-					        access = optional(string,null)
-					        protocol = optional(string,null)
-					        source_port_range = optional(string,null)
-					        destination_port_range = optional(string,null)
-					        source_address_prefix = optional(string,null)
-					        destination_address_prefix = optional(string,null)
-					})),[])
+					security_group_rules = list(object({
+						name = string
+						direction = string
+						access = string
+						protocol = string
+						source_port_range = string
+						destination_port_range = string
+						source_address_prefix = string
+						destination_address_prefix = string
+					}))
 				})
 				user_data = optional(string, null)
 				user_data_file = optional(string, null)
@@ -177,7 +172,7 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 						is_create = false
 					}
 					security_group_rules = [
-						{
+						{****
 							name = null
 							direction = null
 							access = null
@@ -237,10 +232,10 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 	{
 		"terraform_data" : {
 			"provider" : {
-				"subscription_id" : "********-****-****-****-************",
-				"client_id" : "********-****-****-****-************",
-				"client_secret" : "*******************************************************",
-				"tenant_id" : "********-****-****-****-************",
+				"subscription_id" : "fecb4c6d-7a6b-4ba4-b321-4cbfce95f967",
+				"client_id" : "c2fbaac9-0e06-4ece-a90f-b1305f0a5136",
+				"client_secret" : ".vV8Q~ANCTpczWMTB-PEbuJL7M7auH0Z5ws0ybjD",
+				"tenant_id" : "f79bb0dc-9587-4af1-af54-f79861fcda92",
 				"region" : "Korea Central"
 			},
 			"vm_info" : {
@@ -305,8 +300,30 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 | terraform_data.provider.region | string | yes | none |Region Name found through the [preparation step](#get-api-key).|
 | terraform_data.vm_info.vm_name | string | yes | none |Specifies the name of the Virtual Machine.|
 | terraform_data.vm_info.vm_size | string | yes | none | Specifies the [size of the Virtual Machine](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-general). See also [Azure VM Naming Conventions](https://learn.microsoft.com/en-us/azure/virtual-machines/vm-naming-conventions). |
-| terraform_data.vm_info.resource_group.is_create | string | yes | none |Specifies the name of the Virtual Machine.|
-| terraform_data.vm_info.resource_group.resource_group_name | string | yes | none |Specifies the name of the Virtual Machine.|
+| terraform_data.vm_info.resource_group.is_create | boolean | yes | none | True to create resource_group, false if not. |
+| terraform_data.vm_info.resource_group.resource_group_name | string | yes | none |Specifies the name of the Resource Group.|
+| terraform_data.vm_info.OS.OS_name | string | yes | none |You can enter either ubuntu, centos, or windows.|
+| terraform_data.vm_info.OS.OS_version | string | yes | none |Enter os version with reference to [preparation step](#before-you-begin)|
+| terraform_data.vm_info.network.virtual_network.is_create | string | yes | none |True to create Virtual Network, false if not.|
+| terraform_data.vm_info.network.virtual_network.azure_virtual_network_name | string | yes | none |Specifies the name of the Azure Virtual Network.|
+| terraform_data.vm_info.network.virtual_network.AVN_address_space | list(string) | conditional | none |CIDR (ex : ["10.0.0.0/16"])|
+| terraform_data.vm_info.network.subnet.is_create | boolean | yes | none | True to create subnet, false if not. |
+| terraform_data.vm_info.network.subnet.subnet_name | string | yes | none |Specifies the name of the Subnet.|
+| terraform_data.vm_info.network.subnet.subnet_address_prefixes | list(string) | conditional | none |CIDR (ex : ["10.0.1.0/24"])|
+| terraform_data.vm_info.network.nic_name | string | conditional | none | Specifies the name of the Network Interface. |
+| terraform_data.vm_info.network.security_group_rules[*].name | string | conditional | none | The name of the security rule. This needs to be unique across all Rules in the Network Security Group. |
+| terraform_data.vm_info.network.security_group_rules[*].direction | string | conditional | none | The direction specifies if rule will be evaluated on incoming or outgoing traffic. Possible values are Inbound and Outbound. |
+| terraform_data.vm_info.network.security_group_rules[*].access | string | conditional | none | Specifies whether network traffic is allowed or denied. Possible values are Allow and Deny. |
+| terraform_data.vm_info.network.security_group_rules[*].protocol | string | conditional | none | Network protocol this rule applies to. Possible values include Tcp, Udp, Icmp, Esp, Ah or * (which matches all). |
+| terraform_data.vm_info.network.security_group_rules[*].source_port_range | string | conditional | none | Source Port or Range. Integer or range between 0 and 65535 or * to match any. |
+| terraform_data.vm_info.network.security_group_rules[*].destination_port_range | string | conditional | none | Destination Port or Range. Integer or range between 0 and 65535 or * to match any. |
+| terraform_data.vm_info.network.security_group_rules[*].source_address_prefix | string | conditional | none | CIDR or source IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. |
+| terraform_data.vm_info.network.security_group_rules[*].destination_address_prefix | string | conditional | none | CIDR or destination IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. Besides, it also supports all available Service Tags like ‘Sql.WestEurope‘, ‘Storage.EastUS‘, etc. |
+| terraform_data.vm_info.user_data | string | yes | none | user_data_script |
+| terraform_data.vm_info.user_data_file | string | yes | none | Absolute path of user data file path to use when cloud-init. |
+| terraform_data.vm_info.volume | string | yes | none | Use to add a block volume. Use numeric arrays. |
+
+
 
 * **Go to the file path of Terraform.exe and Initialize the working directory containing the terraform configuration file.**
 
@@ -321,7 +338,7 @@ Prepare your environment for authenticating and running your Terraform scripts. 
   * Comparing the current configuration to the prior state and noting any differences.
   * Proposing a set of change actions that should, if applied, make the remote objects match the configuration.
    ```
-   terraform plan -var-file=<Absolute path of azure_terraform.json>
+   terraform plan -var-file=<Absolute path of nhn_terraform.json>
    ```
   * **Note**
 	* -var-file : When you use a var-file Sets values for potentially many [input variables](https://www.terraform.io/docs/language/values/variables.html) declared in the root module of the configuration, using definitions from a ["tfvars" file](https://www.terraform.io/docs/language/values/variables.html#variable-definitions-tfvars-files). Use this option multiple times to include values from more than one file.
@@ -329,7 +346,7 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 
 * **Executes the actions proposed in a Terraform plan.**
    ```
-   terraform apply -var-file=<Absolute path of azureterraform.json> -auto-approve
+   terraform apply -var-file=<Absolute path of nhn_terraform.json> -auto-approve
    ```
 * **Note**
 	* -auto-approve : Skips interactive approval of plan before applying. This option is ignored when you pass a previously-saved plan file, because Terraform considers you passing the plan file as the approval and so will never prompt in that case.
