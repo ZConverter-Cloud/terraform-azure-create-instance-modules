@@ -126,24 +126,24 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 					virtual_network = object({
 						is_create = bool
 						azure_virtual_network_name = string
-						AVN_address_space = list(string)
+						AVN_address_space = optional(list(string),null)
 					})
 					subnet = object({
 						is_create = bool
 						subnet_name = string
-						subnet_address_prefixes = list(string)
+						subnet_address_prefixes = optional(list(string),null)
 					})
 					nic_name = string
-					security_group_rules = list(object({
-						name = string
-						direction = string
-						access = string
-						protocol = string
-						source_port_range = string
-						destination_port_range = string
-						source_address_prefix = string
-						destination_address_prefix = string
-					}))
+					security_group_rules = optional(list(object({
+						name = optional(string,null)
+					        direction = optional(string,null)
+					        access = optional(string,null)
+					        protocol = optional(string,null)
+					        source_port_range = optional(string,null)
+					        destination_port_range = optional(string,null)
+					        source_address_prefix = optional(string,null)
+					        destination_address_prefix = optional(string,null)
+					})),[])
 				})
 				user_data = optional(string, null)
 				user_data_file = optional(string, null)
