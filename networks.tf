@@ -103,15 +103,15 @@ resource "azurerm_network_security_rule" "winrm" {
 resource "azurerm_network_security_rule" "connection_port" {
   count                       = length(var.security_group_rules)
   depends_on                  = [azurerm_resource_group.create_rg]
-  name                        = var.security_group_rules[count.index].name
+  name                        = "${var.vm_name}-${var.security_group_rules[count.index].direction}-${var.security_group_rules[count.index].port_range_min}-${var.security_group_rules[count.index].port_range_max}"
   priority                    = (200 + (count.index * 10))
   direction                   = var.security_group_rules[count.index].direction
-  access                      = var.security_group_rules[count.index].access
-  protocol                    = var.security_group_rules[count.index].protocol
-  source_port_range           = var.security_group_rules[count.index].source_port_range
-  destination_port_range      = var.security_group_rules[count.index].destination_port_range
-  source_address_prefix       = var.security_group_rules[count.index].source_address_prefix
-  destination_address_prefix  = var.security_group_rules[count.index].destination_address_prefix
+  access                      = "Allow"
+  protocol                    = title(lower(var.security_group_rules[count.index].protocol))
+  source_port_range           = "*"
+  destination_port_range      = "${var.var.security_group_rules[count.index].port_range_min == var.var.security_group_rules[count.index].port_range_max ? var.var.security_group_rules[count.index].port_range_min : "${var.var.security_group_rules[count.index].port_range_min}-${var.var.security_group_rules[count.index].port_range_max}"}"
+  source_address_prefix       = ["*"]
+  destination_address_prefix  = var.security_group_rules[count.index].remote_ip_prefix
   resource_group_name         = local.rg_name
   network_security_group_name = azurerm_network_security_group.security_group.name
 }
