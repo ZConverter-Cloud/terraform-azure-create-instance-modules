@@ -105,7 +105,7 @@ resource "azurerm_network_security_rule" "connection_port" {
   depends_on                  = [azurerm_resource_group.create_rg]
   name                        = "${var.vm_name}-${var.create_security_group_rules[count.index].direction}-${var.create_security_group_rules[count.index].port_range_min}-${var.create_security_group_rules[count.index].port_range_max}"
   priority                    = (200 + (count.index * 10))
-  direction                   = var.create_security_group_rules[count.index].direction
+  direction                   = var.create_security_group_rules[count.index].direction == "Inbound" || var.create_security_group_rules[count.index].direction == "ingress" ? "Inbound" : var.create_security_group_rules[count.index].direction == "egress" || var.create_security_group_rules[count.index].direction == "Outbound" ? "Outbound" : null
   access                      = "Allow"
   protocol                    = title(lower(var.create_security_group_rules[count.index].protocol))
   source_port_range           = "*"
