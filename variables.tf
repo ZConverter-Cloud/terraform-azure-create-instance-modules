@@ -76,14 +76,11 @@ variable "volume" {
 
 variable "security_group_rules" {
   type = list(object({
-    name = string
-    direction = string
-    access = string
-    protocol = string
-    source_port_range = string
-    destination_port_range = string
-    source_address_prefix = string
-    destination_address_prefix = string
+    direction         = string
+    protocol          = string
+    port_range_min    = string
+    port_range_max    = string
+    remote_ip_prefix  = string
   }))
   default = []
 }
