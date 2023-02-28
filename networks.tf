@@ -110,7 +110,7 @@ resource "azurerm_network_security_rule" "connection_port" {
   protocol                    = title(lower(var.create_security_group_rules[count.index].protocol))
   source_port_range           = "*"
   destination_port_range      = "${var.create_security_group_rules[count.index].port_range_min == var.create_security_group_rules[count.index].port_range_max ? var.create_security_group_rules[count.index].port_range_min : "${var.create_security_group_rules[count.index].port_range_min}-${var.create_security_group_rules[count.index].port_range_max}"}"
-  source_address_prefix       = ["*"]
+  source_address_prefix       = "*"
   destination_address_prefix  = var.create_security_group_rules[count.index].remote_ip_prefix
   resource_group_name         = local.rg_name
   network_security_group_name = azurerm_network_security_group.security_group.name
