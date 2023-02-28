@@ -74,7 +74,7 @@ variable "volume" {
   default = []
 }
 
-variable "security_group_rules" {
+variable "create_security_group_rules" {
   type = list(object({
     direction         = string
     protocol          = string
