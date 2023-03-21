@@ -1,31 +1,7 @@
-resource "azurerm_resource_group" "create_rg" {
-  count    = var.is_create_rg == true ? 1 : 0
-  name     = var.resource_group_name
-  location = var.region
-}
-
-data "azurerm_resource_group" "get_rg" {
-  count = var.is_create_rg == false ? 1 : 0
-  name  = var.resource_group_name
-}
-
-resource "random_password" "password" {
-  length           = 10
-  min_upper        = 2
-  min_lower        = 2
-  min_special      = 2
-  numeric          = true
-  special          = true
-  override_special = "!@#$%"
-}
-
 resource "azurerm_virtual_machine" "create_azure_vm" {
-  depends_on = [
-    azurerm_network_interface.ANIC
-  ]
   name                  = var.vm_name
-  location              = var.region
-  resource_group_name   = var.resource_group_name
+  location              = local.location
+  resource_group_name   = local.rg_name
   network_interface_ids = formatlist(azurerm_network_interface.ANIC.id)
   vm_size               = var.vm_size
 
@@ -46,27 +22,18 @@ resource "azurerm_virtual_machine" "create_azure_vm" {
   }
 
   os_profile {
-    computer_name  = lower(var.vm_name)
-    admin_username = lower(var.vm_name)
-    admin_password = random_password.password.result
+    computer_name  = var.vm_name
+    admin_username = var.vm_name
+    admin_password = var.vm_password
     custom_data    = local.custom_data
   }
 
   dynamic "os_profile_windows_config" {
-    for_each = var.OS_name == "windows" && local.custom_data != null ? [1] : []
+    for_each = var.OS_name == "windows" ? [1] : []
     content {
       provision_vm_agent = true
       winrm {
         protocol = "HTTP"
-      }
-      dynamic "additional_unattend_config" {
-        for_each = local.additional_unattend_config
-        content {
-          pass         = additional_unattend_config.value["pass"]
-          component    = additional_unattend_config.value["component"]
-          setting_name = additional_unattend_config.value["setting_name"]
-          content      = additional_unattend_config.value["content"]
-        }
       }
     }
   }
@@ -79,46 +46,24 @@ resource "azurerm_virtual_machine" "create_azure_vm" {
   }
 }
 
-resource "time_sleep" "wait_60_seconds" {
-  count           = var.OS_name == "windows" && local.custom_data != null && (var.user_data_file != null || var.user_data != null) ? 1 : 0
-  depends_on      = [azurerm_virtual_machine.create_azure_vm]
-  create_duration = "60s"
-}
-
-resource "null_resource" "provisioner" {
-  count = var.OS_name == "windows" && local.custom_data != null && (var.user_data_file != null || var.user_data != null) ? 1 : 0
+resource "azurerm_virtual_machine_extension" "example_extension" {
   depends_on = [
-    time_sleep.wait_60_seconds
+    azurerm_virtual_machine.create_azure_vm
   ]
-  connection {
-    host     = azurerm_public_ip.public_ip.fqdn
-    type     = "winrm"
-    port     = 5985
-    https    = false
-    timeout  = "2m"
-    user     = lower(var.vm_name)
-    password = random_password.password.result
-  }
+  count = var.OS_name == "windows" ? 1 : 0
+  name                 = "example_extension"
+  virtual_machine_id   = azurerm_virtual_machine.create_azure_vm.id
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.10"
 
-  provisioner "remote-exec" {
-    script = var.user_data_file
-  }
-}
+  settings = <<SETTINGS
+    {
+      "commandToExecute": "cd C:\\ && cmd.exe /c move %SYSTEMDRIVE%\\AzureData\\CustomData.bin C:\\userscript.cmd && start /k cmd.exe /C C:\\userscript.cmd 2>&1 || true;"
+    }
+  SETTINGS
 
-resource "azurerm_managed_disk" "create_disk" {
-  count                = length(var.volume)
-  name                 = "${var.vm_name}-adddisk${count.index}"
-  location             = local.location
-  resource_group_name  = var.resource_group_name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = var.volume[count.index]
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "attach_disk" {
-  count              = length(var.volume)
-  managed_disk_id    = azurerm_managed_disk.create_disk[count.index].id
-  virtual_machine_id = azurerm_virtual_machine.create_azure_vm.id
-  lun                = count.index
-  caching            = "ReadWrite"
+  protected_settings = <<PROTECTED_SETTINGS
+    {}
+  PROTECTED_SETTINGS
 }
