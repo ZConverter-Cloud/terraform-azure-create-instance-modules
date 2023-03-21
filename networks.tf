@@ -3,9 +3,9 @@ resource "azurerm_virtual_network" "create_AVN" {
     azurerm_resource_group.create_rg,
     data.azurerm_resource_group.get_rg
   ]
-  count               = var.is_create_VN == true ? 1 : 0
-  name                = var.AVN_name
-  address_space       = var.AVN_address_space
+  count               = var.create_azure_virtual_network_name != null ? 1 : 0
+  name                = var.create_azure_virtual_network_name
+  address_space       = var.azure_virtual_network_address_space
   location            = local.location
   resource_group_name = local.rg_name
 }
@@ -15,8 +15,8 @@ data "azurerm_virtual_network" "get_AVN" {
     azurerm_resource_group.create_rg,
     data.azurerm_resource_group.get_rg
   ]
-  count               = var.is_create_VN == false ? 1 : 0
-  name                = var.AVN_name
+  count               = var.azure_virtual_network_name != null ? 1 : 0
+  name                = var.azure_virtual_network_name
   resource_group_name = local.rg_name
 }
 
@@ -25,10 +25,10 @@ resource "azurerm_subnet" "create_internal" {
     azurerm_virtual_network.create_AVN,
     data.azurerm_virtual_network.get_AVN
   ]
-  count                = var.is_create_subnet == true ? 1 : 0
-  name                 = var.subnet_name
+  count                = var.create_subnet_name != null ? 1 : 0
+  name                 = var.create_subnet_name
   resource_group_name  = local.rg_name
-  virtual_network_name = var.AVN_name
+  virtual_network_name = var.create_azure_virtual_network_name != null ? var.create_azure_virtual_network_name : var.azure_virtual_network_name
   address_prefixes     = var.subnet_address_prefixes
 }
 
@@ -37,9 +37,9 @@ data "azurerm_subnet" "get_internal" {
     azurerm_virtual_network.create_AVN,
     data.azurerm_virtual_network.get_AVN
   ]
-  count                = var.is_create_subnet == false ? 1 : 0
+  count                = var.subnet_name != null ? 1 : 0
   name                 = var.subnet_name
-  virtual_network_name = var.AVN_name
+  virtual_network_name = var.create_azure_virtual_network_name != null ? var.create_azure_virtual_network_name : var.azure_virtual_network_name
   resource_group_name  = local.rg_name
 }
 
@@ -61,43 +61,35 @@ resource "azurerm_network_interface" "ANIC" {
     data.azurerm_subnet.get_internal,
     azurerm_public_ip.public_ip
   ]
-  name                = var.nic_name
+  name                = "${var.vm_name}-ANIC"
   location            = local.location
   resource_group_name = local.rg_name
 
   ip_configuration {
-    name                          = var.nic_name
-    subnet_id                     = var.is_create_subnet == true ? azurerm_subnet.create_internal[0].id : data.azurerm_subnet.get_internal[0].id
+    name                          = "${var.vm_name}-ANIC"
+    subnet_id                     = var.create_subnet_name != null ? azurerm_subnet.create_internal[0].id : data.azurerm_subnet.get_internal[0].id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.public_ip.id
   }
 }
 
 resource "azurerm_network_security_group" "security_group" {
+  depends_on = [
+    azurerm_resource_group.create_rg,
+    data.azurerm_resource_group.get_rg
+  ]
   name                = "${var.vm_name}-nsg"
   location            = local.location
   resource_group_name = local.rg_name
 }
 
 resource "azurerm_network_interface_security_group_association" "security_group_attach" {
+  depends_on = [
+    azurerm_network_interface.ANIC,
+    azurerm_network_security_group.security_group
+  ]
   network_interface_id      = azurerm_network_interface.ANIC.id
   network_security_group_id = azurerm_network_security_group.security_group.id
-}
-
-resource "azurerm_network_security_rule" "winrm" {
-  count                       = var.user_data_file != null ? length(local.winrm_security_group) : 0
-  depends_on                  = [azurerm_resource_group.create_rg]
-  name                        = local.winrm_security_group[count.index].name
-  priority                    = local.winrm_security_group[count.index].priority
-  direction                   = local.winrm_security_group[count.index].direction
-  access                      = local.winrm_security_group[count.index].access
-  protocol                    = local.winrm_security_group[count.index].protocol
-  source_port_range           = local.winrm_security_group[count.index].source_port_range
-  destination_port_range      = local.winrm_security_group[count.index].destination_port_range
-  source_address_prefix       = local.winrm_security_group[count.index].source_address_prefix
-  destination_address_prefix  = local.winrm_security_group[count.index].destination_address_prefix
-  resource_group_name         = local.rg_name
-  network_security_group_name = azurerm_network_security_group.security_group.name
 }
 
 resource "azurerm_network_security_rule" "connection_port" {
