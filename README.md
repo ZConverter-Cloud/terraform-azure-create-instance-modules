@@ -231,7 +231,7 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 							"protocol"         : "tcp",
 							"port_range_min"   : "22",
 							"port_range_max"   : "22",
-							"remote_ip_prefix" : "218.145.120.34/32"
+							"remote_ip_prefix" : "0.0.0.0/0"
 						}
 					]
 				},
