@@ -180,9 +180,13 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 
 		create_security_group_rules = var.terraform_data.vm_info.network_interface.security_group_rules
 
-		user_data_file_path = var.terraform_data.vm_info.user_data_file
+		user_data_file_path = var.terraform_data.vm_info.user_data_file_path
 		additional_volumes = var.terraform_data.vm_info.volume
 	}
+
+        output "result" {
+                value = module.create_azure_instance.result
+        }
    ```
 * After creating the azure_terraform.json file to enter the user's value, you must enter the contents below. 
 * ***The openstack_terraform.json below is an example of a required value only. See below the Attributes table for a complete example.***
