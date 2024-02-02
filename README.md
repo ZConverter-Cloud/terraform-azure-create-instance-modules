@@ -83,8 +83,8 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 	terraform {
 		required_providers {
 			azurerm = {
-				source  = "hashicorp/azurerm"
-				version = "3.33.0"
+			source  = "hashicorp/azurerm"
+			version = "3.33.0"
 			}
 		}
 	}
@@ -92,9 +92,9 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 	provider "azurerm" {
 		features {}
 		subscription_id = var.terraform_data.provider.subscription_id
-		client_id = var.terraform_data.provider.client_id
-		client_secret = var.terraform_data.provider.client_secret
-		tenant_id = var.terraform_data.provider.tenant_id
+		client_id       = var.terraform_data.provider.client_id
+		client_secret   = var.terraform_data.provider.client_secret
+		tenant_id       = var.terraform_data.provider.tenant_id
 	}
 
 	variable "terraform_data" {
@@ -107,12 +107,13 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 				region          = string
 			})
 			vm_info = object({
-				vm_name        = string
-				vm_size        = string
-				vm_password      = string
+				vm_name     = string
+				vm_size     = string
+				vm_username = string
+				vm_password = string
 				resource_group = object({
-					is_create              = bool
-					resource_group_name   = string
+					is_create           = bool
+					resource_group_name = string
 				})
 				OS = object({
 					OS_name    = string
@@ -120,23 +121,23 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 				})
 				network_interface = object({
 					virtual_network = object({
-						is_create                 = bool
+						is_create                  = bool
 						azure_virtual_network_name = string
-						AVN_address_space         = list(string)
+						AVN_address_space          = list(string)
 					})
 					subnet = object({
-						is_create              = bool
-						subnet_name            = string
+						is_create               = bool
+						subnet_name             = string
 						subnet_address_prefixes = list(string)
 					})
-					nic_name               = string
-					security_group_rules   = optional(list(object({
+					nic_name = string
+					security_group_rules = optional(list(object({
 						direction        = string
 						protocol         = string
 						port_range_min   = string
 						port_range_max   = string
 						remote_ip_prefix = string
-					})),[])
+					})), [])
 				})
 				user_data           = optional(string, null)
 				user_data_file_path = optional(string, null)
@@ -146,47 +147,48 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 	}
 
 	locals {
-		resource_group_name = var.terraform_data.vm_info.resource_group.is_create == false ? var.terraform_data.vm_info.resource_group.resource_group_name : null
+		resource_group_name        = var.terraform_data.vm_info.resource_group.is_create == false ? var.terraform_data.vm_info.resource_group.resource_group_name : null
 		create_resource_group_name = var.terraform_data.vm_info.resource_group.is_create == true ? var.terraform_data.vm_info.resource_group.resource_group_name : null
 
-		azure_virtual_network_name = var.terraform_data.vm_info.network_interface.virtual_network.is_create == false ? var.terraform_data.vm_info.network_interface.virtual_network.azure_virtual_network_name : null
+		azure_virtual_network_name        = var.terraform_data.vm_info.network_interface.virtual_network.is_create == false ? var.terraform_data.vm_info.network_interface.virtual_network.azure_virtual_network_name : null
 		create_azure_virtual_network_name = var.terraform_data.vm_info.network_interface.virtual_network.is_create == true ? var.terraform_data.vm_info.network_interface.virtual_network.create_azure_virtual_network_name : null
 
-		subnet_name = var.terraform_data.vm_info.network_interface.subnet.is_create == false ? var.terraform_data.vm_info.network_interface.subnet.subnet_name : null
+		subnet_name        = var.terraform_data.vm_info.network_interface.subnet.is_create == false ? var.terraform_data.vm_info.network_interface.subnet.subnet_name : null
 		create_subnet_name = var.terraform_data.vm_info.network_interface.subnet.is_create == true ? var.terraform_data.vm_info.network_interface.subnet.create_subnet_name : null
 	}
 
-	module  "create_azure_instance" {
+	module "create_azure_instance" {
 		source = "git::https://github.com/ZConverter-Cloud/terraform-azure-create-instance-modules.git"
 		region = var.terraform_data.provider.region
 
-		vm_name = var.terraform_data.vm_info.vm_name
-		vm_size = var.terraform_data.vm_info.vm_size
+		vm_name     = var.terraform_data.vm_info.vm_name
+		vm_size     = var.terraform_data.vm_info.vm_size
+                vm_username = var.terraform_data.vm_info.vm_username
 		vm_password = var.terraform_data.vm_info.vm_password
-		
-		resource_group_name = local.resource_group_name
+
+		resource_group_name        = local.resource_group_name
 		create_resource_group_name = local.create_resource_group_name
-		
-		OS_name = var.terraform_data.vm_info.OS.OS_name
+
+		OS_name    = var.terraform_data.vm_info.OS.OS_name
 		OS_version = var.terraform_data.vm_info.OS.OS_version
 
-		azure_virtual_network_name = local.azure_virtual_network_name
-		create_azure_virtual_network_name = local.create_azure_virtual_network_name
+		azure_virtual_network_name          = local.azure_virtual_network_name
+		create_azure_virtual_network_name   = local.create_azure_virtual_network_name
 		azure_virtual_network_address_space = var.terraform_data.vm_info.network_interface.virtual_network.AVN_address_space
 
-		subnet_name = local.subnet_name
-		create_subnet_name = local.create_subnet_name
+		subnet_name             = local.subnet_name
+		create_subnet_name      = local.create_subnet_name
 		subnet_address_prefixes = var.terraform_data.vm_info.network_interface.subnet.subnet_address_prefixes
 
 		create_security_group_rules = var.terraform_data.vm_info.network_interface.security_group_rules
 
 		user_data_file_path = var.terraform_data.vm_info.user_data_file_path
-		additional_volumes = var.terraform_data.vm_info.volume
+		additional_volumes  = var.terraform_data.vm_info.volume
 	}
 
-        output "result" {
-                value = module.create_azure_instance.result
-        }
+	output "result" {
+		value = module.create_azure_instance.result
+	}
    ```
 * After creating the azure_terraform.json file to enter the user's value, you must enter the contents below. 
 * ***The openstack_terraform.json below is an example of a required value only. See below the Attributes table for a complete example.***
@@ -204,6 +206,7 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 			"vm_info": {
 				"vm_name": "terraform-test",
 				"vm_size": "Standard_D1",
+				"vm_username": "zconverter",
 				"vm_password" : "**********",
 				"resource_group": {
 					"is_create": false,
@@ -256,6 +259,8 @@ Prepare your environment for authenticating and running your Terraform scripts. 
 | terraform_data.provider.tenant_id | string | yes | none |Tenant ID found through the [preparation step](#get-api-key).|
 | terraform_data.provider.region | string | yes | none |Region Name found through the [preparation step](#get-api-key).|
 | terraform_data.vm_info.vm_name | string | yes | none |Specifies the name of the Virtual Machine.|
+| terraform_data.vm_info.vm_username | string | yes | none |username of the VM to be created.|
+| terraform_data.vm_info.vm_password | string | yes | none |password of the VM to be created.|
 | terraform_data.vm_info.vm_size | string | yes | none | Specifies the [size of the Virtual Machine](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-general). See also [Azure VM Naming Conventions](https://learn.microsoft.com/en-us/azure/virtual-machines/vm-naming-conventions). |
 | terraform_data.vm_info.resource_group.is_create | boolean | yes | none | True to create resource_group, false if not. |
 | terraform_data.vm_info.resource_group.resource_group_name | string | yes | none |Specifies the name of the Resource Group.|
