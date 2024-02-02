@@ -23,7 +23,7 @@ resource "azurerm_virtual_machine" "create_azure_vm" {
 
   os_profile {
     computer_name  = var.vm_name
-    admin_username = var.vm_name
+    admin_username = var.vm_username
     admin_password = var.vm_password
     custom_data    = local.custom_data
   }
