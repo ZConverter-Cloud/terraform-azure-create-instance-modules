@@ -7,7 +7,7 @@
 
 ## Before You Begin
 To successfully perform this tutorial, you must have the following:
-
+* You need to install [git](https://git-scm.com/downloads) in advance to use it.
 * Only CentOS, Ubuntu, and Windows are available for operating systems, and [OS versions with cloud initialization](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/using-cloud-init) are recommended.
 	* Windows does not have to consider cloud-init when selecting the os version.
 
